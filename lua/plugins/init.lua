@@ -250,7 +250,13 @@ return {
     end,
   },
 
-  -- the opts function can also be used to change the default opts:
+
+   {
+    'akinsho/toggleterm.nvim',
+    config = function()
+      require("toggleterm").setup{}
+    end
+  },-- the opts function can also be used to change the default opts:
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
