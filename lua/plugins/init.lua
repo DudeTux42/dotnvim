@@ -1,63 +1,64 @@
--- since this is just an example spec, don't actually load anything here and return an empty spec
--- stylua: ignore
 if true then return {} end
 
--- every spec file under the "plugins" directory will be loaded automatically by lazy.nvim
---
--- In your plugin files, you can:
--- * add extra plugins
--- * disable/enabled LazyVim plugins
--- * override the configuration of LazyVim plugins
 return {
   {
-    "stevearc/conform.nvim",
-    -- event = 'BufWritePre', -- uncomment for format on save
-    opts = require "configs.conform",
-  },
-  {
     "okuuva/auto-save.nvim",
-    cmd = "ASToggle", -- optional for lazy loading on command
-    event = { "InsertLeave", "TextChanged" }, -- optional for lazy loading on trigger events
+    cmd = "ASToggle",
+    event = { "InsertLeave", "TextChanged" },
+    opts = {},
+  },
+
+  -- LSP configuration for slint
+  {
+    "neovim/nvim-lspconfig",
     opts = {
-      -- your config goes here
-      -- or just leave it empty :)
+      servers = {
+        slint = {
+          cmd = { "slint-lsp" },
+          filetypes = { "slint" },
+        },
+        pyright = {},
+        tsserver = {}, -- tsserver with TypeScript setup
+      },
+      setup = {
+        tsserver = function(_, opts)
+          require("typescript").setup({ server = opts })
+          return true
+        end,
+      },
     },
   },
 
-  -- Codium 
-  -- {
-  --   "Exafunction/codeium.nvim",
-  --   enabled = false,
-  --   dependencies = {
-  --     "nvim-lua/plenary.nvim",
-  --     "hrsh7th/nvim-cmp",
-  --   },
-  --   config = function()
-  --     require("codeium").setup({})
-  --   end,
-  -- },
+  -- CoC configuration
+  {
+    "neoclide/coc.nvim",
+    branch = "release",
+    config = function()
+      -- Place your Coc configuration here
+    end,
+  },
 
-  -- add gruvbox
+  -- Theme plugins
   { "ellisonleao/gruvbox.nvim" },
-
-  -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
     opts = {
       colorscheme = "gruvbox",
     },
   },
+
+  -- Rust support
   {
     'mrcjkb/rustaceanvim',
-    version = '^5', -- Recommended
-    lazy = false, -- This plugin is already lazy
+    version = '^5',
+    lazy = false,
     ft = "rust",
     config = function ()
       local mason_registry = require('mason-registry')
       local codelldb = mason_registry.get_package("codelldb")
       local extension_path = codelldb:get_install_path() .. "/extension/"
       local codelldb_path = extension_path .. "adapter/codelldb"
-      local liblldb_path = extension_path.. "lldb/lib/liblldb.dylib"
+      local liblldb_path = extension_path .. "lldb/lib/liblldb.dylib"
       local cfg = require('rustaceanvim.config')
 
       vim.g.rustaceanvim = {
@@ -74,34 +75,32 @@ return {
       vim.g.rustfmt_autosave = 1
     end
   },
+
+  -- Debug Adapter Protocol (DAP) setup
   {
     'mfussenegger/nvim-dap',
     config = function()
-			local dap, dapui = require("dap"), require("dapui")
+      local dap, dapui = require("dap"), require("dapui")
       dap.listeners.before.attach.dapui_config = function()
-        dapui.open()
-      end
-      dap.listeners.before.launch.dapui_config = function()
         dapui.open()
       end
       dap.listeners.before.event_terminated.dapui_config = function()
         dapui.close()
       end
-      dap.listeners.before.event_exited.dapui_config = function()
-        dapui.close()
-      end
-		end,
+    end,
   },
   {
     'rcarriga/nvim-dap-ui',
-    dependencies = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"},
+    dependencies = { "mfussenegger/nvim-dap" },
     config = function()
-			require("dapui").setup()
-		end,
+      require("dapui").setup()
+    end,
   },
+
+  -- Crates support for Cargo.toml files
   {
     'saecki/crates.nvim',
-    ft = {"toml"},
+    ft = { "toml" },
     config = function()
       require("crates").setup {
         completion = {
@@ -115,39 +114,29 @@ return {
       })
     end
   },
-  -- change trouble config
-  {
-    "folke/trouble.nvim",
-    -- opts will be merged with the parent spec
-    opts = { use_diagnostic_signs = true },
-  },
 
-  -- disable trouble
-  { "folke/trouble.nvim", enabled = false },
+  -- Troubleshooting plugin
+  { "folke/trouble.nvim", opts = { use_diagnostic_signs = true } },
 
-  -- override nvim-cmp and add cmp-emoji
+  -- nvim-cmp with emoji support
   {
     "hrsh7th/nvim-cmp",
     dependencies = { "hrsh7th/cmp-emoji" },
-    ---@param opts cmp.ConfigSchema
     opts = function(_, opts)
       table.insert(opts.sources, { name = "emoji" })
     end,
   },
 
-  -- change some telescope options and a keymap to browse plugin files
+  -- Telescope customization
   {
     "nvim-telescope/telescope.nvim",
     keys = {
-      -- add a keymap to browse plugin files
-      -- stylua: ignore
       {
         "<leader>fp",
         function() require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root }) end,
         desc = "Find Plugin File",
       },
     },
-    -- change some options
     opts = {
       defaults = {
         layout_strategy = "horizontal",
@@ -158,105 +147,27 @@ return {
     },
   },
 
-  -- add pyright to lspconfig
-  {
-    "neovim/nvim-lspconfig",
-    config = function ()
-      require "configs.lspconfig"
-    end,
-    ---@class PluginLspOpts
-    opts = {
-      ---@type lspconfig.options
-      servers = {
-        -- pyright will be automatically installed with mason and loaded with lspconfig
-        pyright = {},
-      },
-    },
-  },
-
-  -- add tsserver and setup with typescript.nvim instead of lspconfig
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      "jose-elias-alvarez/typescript.nvim",
-      init = function()
-        require("lazyvim.util").lsp.on_attach(function(_, buffer)
-          -- stylua: ignore
-          vim.keymap.set( "n", "<leader>co", "TypescriptOrganizeImports", { buffer = buffer, desc = "Organize Imports" })
-          vim.keymap.set("n", "<leader>cR", "TypescriptRenameFile", { desc = "Rename File", buffer = buffer })
-        end)
-      end,
-    },
-    ---@class PluginLspOpts
-    opts = {
-      ---@type lspconfig.options
-      servers = {
-        -- tsserver will be automatically installed with mason and loaded with lspconfig
-        tsserver = {},
-      },
-      -- you can do any additional lsp server setup here
-      -- return true if you don't want this server to be setup with lspconfig
-      ---@type table<string, fun(server:string, opts:_.lspconfig.options):boolean?>
-      setup = {
-        -- example to setup with typescript.nvim
-        tsserver = function(_, opts)
-          require("typescript").setup({ server = opts })
-          return true
-        end,
-        -- Specify * to use this function as a fallback for any server
-        -- ["*"] = function(server, opts) end,
-      },
-    },
-  },
-
-  -- for typescript, LazyVim also includes extra specs to properly setup lspconfig,
-  -- treesitter, mason and typescript.nvim. So instead of the above, you can use:
-  { import = "lazyvim.plugins.extras.lang.typescript" },
-
-  -- add more treesitter parsers
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = {
-      ensure_installed = {
-        "bash",
-        "html",
-        "javascript",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "query",
-        "regex",
-        "tsx",
-        "typescript",
-        "vim",
-        "yaml",
-      },
-    },
-  },
-
-  -- since `vim.tbl_deep_extend`, can only merge tables and not lists, the code above
-  -- would overwrite `ensure_installed` with the new value.
-  -- If you'd rather extend the default config, use the code below instead:
+  -- Treesitter with extended language support
   {
     "nvim-treesitter/nvim-treesitter",
     opts = function(_, opts)
-      -- add tsx and treesitter
       vim.list_extend(opts.ensure_installed, {
-        "tsx",
-        "typescript",
+        "bash", "html", "javascript", "json", "lua",
+        "markdown", "markdown_inline", "python", "query",
+        "regex", "tsx", "typescript", "vim", "yaml"
       })
     end,
   },
 
-
-   {
+  -- ToggleTerm for terminal integration
+  {
     'akinsho/toggleterm.nvim',
     config = function()
       require("toggleterm").setup{}
     end
-  },-- the opts function can also be used to change the default opts:
+  },
+
+  -- Lualine with custom symbol in status line
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
@@ -265,33 +176,29 @@ return {
     end,
   },
 
-  -- or you can return new options to override all the defaults
-  {
-    "nvim-lualine/lualine.nvim",
-    event = "VeryLazy",
-    opts = function()
-      return {
-        --[[add your custom lualine config here]]
-      }
-    end,
-  },
-
-  -- use mini.starter instead of alpha
+  -- mini.starter instead of alpha for dashboard
   { import = "lazyvim.plugins.extras.ui.mini-starter" },
 
-  -- add jsonls and schemastore packages, and setup treesitter for json, json5 and jsonc
+  -- JSON LSP and treesitter support
   { import = "lazyvim.plugins.extras.lang.json" },
 
-  -- add any tools you want to have installed below
+  -- Mason for managing external tools
   {
     "williamboman/mason.nvim",
     opts = {
       ensure_installed = {
-        "stylua",
-        "shellcheck",
-        "shfmt",
-        "flake8",
+        "stylua", "shellcheck", "shfmt", "flake8", "codelldb", "slint-lsp"
       },
     },
   },
+
+  -- Enable syntax-based folding
+  {
+    config = function()
+      vim.o.foldmethod = "syntax"
+      vim.o.foldlevel = 99 -- Keep all blocks unfolded by default
+    end
+  },
 }
+
+

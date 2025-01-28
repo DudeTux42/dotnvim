@@ -1,0 +1,30 @@
+return {
+  "3rd/image.nvim",
+  commit = "a9a0692d8e042b7de5a2097858a6c9b1c0d7f1c8", -- Working commit
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "m00qek/baleia.nvim"
+  },
+  opts = {
+    backend = "ueberzug",
+    max_width = 80,
+    max_height = 24,
+    integrations = {
+      markdown = {
+        enabled = true,
+        download_remote_images = true,
+        clear_in_insert_mode = false
+      }
+    }
+  },
+  ft = "markdown",
+  config = function(_, opts)
+    require("image").setup(opts)
+    
+    -- Windows-specific workaround
+    if vim.fn.has("win32") == 1 then
+      vim.g.image_nvim_use_curl = 1
+      vim.g.image_nvim_check_requirements = 0
+    end
+  end
+}

@@ -105,6 +105,8 @@ vim.api.nvim_set_keymap('n', '<leader>ä', ':w<CR>', { noremap = true, silent = 
 vim.api.nvim_set_keymap('n', '<leader>.', '<Esc>A.', { noremap = true, silent = true })
 --Append , to en of line and start insert
 vim.api.nvim_set_keymap('n', '<leader>,', '<Esc>A,', { noremap = true, silent = true })
+--Open telescope with TodoTelescope
+vim.keymap.set("n", "<leader>fv", ":TodoTelescope<CR>", { desc = "Open TodoTelescope" })
 -- vim.api.nvim_set_keymap('n', 'ü', "<cmd>lua require'lightspeed'.sx:go_to_char()<CR>", { noremap = true, silent = true })
 -- vim.api.nvim_set_keymap('n', 'Ü', "<cmd>lua require'lightspeed'.sx:go_to_char_backwards()<CR>", { noremap = true, silent = true })
 return {}
