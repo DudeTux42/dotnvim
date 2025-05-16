@@ -4,13 +4,30 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
-    build = ":TSUpdate",  -- LazyVim prefers 'build' over 'run'
+    build = ":TSUpdate", -- LazyVim prefers 'build' over 'run'
     opts = {
       ensure_installed = {
-        "go", "lua", "python", "rust", "typescript", "regex",
-        "bash", "markdown", "markdown_inline", "kdl", "sql", "org", "terraform",
-        "html", "css", "javascript", "yaml", "json", "toml",
-        "bibtex", "latex"  -- Added languages
+        "go",
+        "lua",
+        "python",
+        "rust",
+        "typescript",
+        "regex",
+        "bash",
+        "markdown",
+        "markdown_inline",
+        "kdl",
+        "sql",
+        "org",
+        "terraform",
+        "html",
+        "css",
+        "javascript",
+        "yaml",
+        "json",
+        "toml",
+        "bibtex",
+        "latex",
       },
       highlight = {
         enable = true,
@@ -79,6 +96,6 @@ return {
     config = function(_, opts)
       require("nvim-treesitter.configs").setup(opts)
       vim.treesitter.language.register("markdown", "mdx")
-    end
-  }
+    end,
+  },
 }
