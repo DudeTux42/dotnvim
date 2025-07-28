@@ -28,7 +28,14 @@ return {
       },
     },
   },
-
+  {
+    "williamboman/mason.nvim",
+    version = "v1.*",
+  },
+  {
+    "williamboman/mason-lspconfig.nvim", 
+    version = "v1.*",
+  },
   -- CoC configuration
   {
     "neoclide/coc.nvim",
