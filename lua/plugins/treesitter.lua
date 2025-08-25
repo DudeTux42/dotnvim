@@ -18,7 +18,6 @@ return {
         "markdown_inline",
         "kdl",
         "sql",
-        "org",
         "terraform",
         "html",
         "css",
